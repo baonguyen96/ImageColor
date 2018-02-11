@@ -18,15 +18,6 @@ def linear_scaling(x1, y1, x2, y2, org_img):
     print('x1 = {}, y1 = {}, x2 = {}, y2 = {}'.format(x1, y1, x2, y2))
     print('image size = {}x{}'.format(a, b))
 
-    # change to luv
-    # new_img = new_img * (1./255)
-    # print(org_img[50, 50])
-    # print(new_img[50, 50])
-
-    # cv2.cvtColor(new_img, new_img, cv2.COLOR_BGR2Luv)
-    # print(org_img[50, 50])
-    # print(new_img[50, 50])
-
     # count histogram
     for y in range(y1, y2):
         for x in range(x1, x2):
