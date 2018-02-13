@@ -1,6 +1,5 @@
 import numpy as np
 
-
 # constants
 rgb2xyz_matrix = np.matrix(
     '0.412453 0.357580 0.180423; '
@@ -82,7 +81,7 @@ def xyz2bgr(xyz_image):
             # linear bgr
             x_val, y_val, z_val = xyz_image[x, y]
             xyz_matrix = np.matrix('{} {} {}'.format(x_val, y_val, z_val)).transpose()
-            new_pixel_value = xyz2rgb_matrix * xyz_matrix   # rgb form
+            new_pixel_value = xyz2rgb_matrix * xyz_matrix  # rgb form
             r = new_pixel_value[0]
             g = new_pixel_value[1]
             b = new_pixel_value[2]
@@ -91,7 +90,7 @@ def xyz2bgr(xyz_image):
             r = gamma(r)
             g = gamma(g)
             b = gamma(b)
-            new_pixel_value = np.matrix(b, g, r)    # bgr form
+            new_pixel_value = np.matrix(b, g, r)  # bgr form
             bgr_image[x, y] = new_pixel_value.transpose()
 
     return bgr_image
@@ -114,14 +113,16 @@ def xyz2luv(xyz_image):
 
             # compute u, v
             d = x_value + 15 * y_value + 3 * z_value
-            u_prime = 4 * x_value / d
-            v_prime = 9 * y_value / d
+            if d == 0:
+                u_prime = v_prime = 0
+            else:
+                u_prime = 4 * x_value / d
+                v_prime = 9 * y_value / d
             u = 12 * l * (u_prime - uw)
             v = 13 * l * (v_prime - vw)
 
             # store luv pixel
             luv_pixel = np.matrix('{} {} {}'.format(l, u, v))
-            # print(luv_pixel)
             luv_image[x, y] = luv_pixel
 
     return luv_image
@@ -152,7 +153,7 @@ def luv2xyz(luv_image):
                 z_value = y * (3 - 0.75 * u_prime - 5 * v_prime) / v_prime
 
             # store xyz pixel
-            xyz_pixel = np.matrix('{} {} {}'.format(x_value, y_value, z_value)).transpose()
+            xyz_pixel = np.matrix('{} {} {}'.format(x_value, y_value, z_value))
             xyz_image[x, y] = xyz_pixel
 
     return xyz_image
@@ -207,7 +208,7 @@ def linear_scaling(x1, y1, x2, y2, rgb_img):
     for y in range(y1, y2):
         for x in range(x1, x2):
             l, u, v = luv_image[y, x]
-            lookup_table[l][0] += 1  # count frequency
+            lookup_table[l][0] += 1  # count frequency, l needs to be integer but here it is not
 
             if l < min_i:
                 min_i = l
@@ -231,6 +232,6 @@ def linear_scaling(x1, y1, x2, y2, rgb_img):
             scaled_luv_image[x, y] = lookup_table[l][1]
 
     # luv -> bgr
-    bgr_img = luv2bgr(luv_image)
+    bgr_img = luv2bgr(scaled_luv_image)
 
     return bgr_img
