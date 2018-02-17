@@ -50,8 +50,8 @@ def linear_scaling(x1, y1, x2, y2, org_img):
         else:
             lookup_table[i][NEW_I] = 255
 
-    for x in range(w - 1):
-        for y in range(h - 1):
+    for x in range(x1, x2):
+        for y in range(y1, y2):
             b, g, r = org_img[y, x]
             new_img[y, x] = lookup_table[g][NEW_I]
 
@@ -64,7 +64,7 @@ def calculate_f_i(last_fi, current_fi, n, k):
 
 def histogram_equalization(x1, y1, x2, y2, org_img):
     lookup_table = np.zeros((256, 4), dtype=int)
-    new_image = np.zeros(org_img.shape, dtype=int)
+    new_image = org_img
     w, h, bands = org_img.shape
     min_i = 257
     max_i = -1
@@ -104,10 +104,10 @@ def histogram_equalization(x1, y1, x2, y2, org_img):
     print(lookup_table)
 
     # build a new image
-    for x in range(w - 1):
-        for y in range(h - 1):
+    for x in range(x1, x2):
+        for y in range(y1, y2):
             # move pixels
-            b, g, r = org_img[x, y]
-            new_image[x, y] = lookup_table[g][FLOOR_F_I_CALC]
+            b, g, r = org_img[y, x]
+            new_image[y, x] = lookup_table[g][FLOOR_F_I_CALC]
 
     return new_image

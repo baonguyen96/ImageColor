@@ -1,0 +1,7 @@
+# Created by .ignore support plugin (hsz.mobi)
+.idea/inspectionProfiles/
+.idea/mongoSettings.xml
+.idea/workspace.xml
+__pycache__/
+venv/Include/
+backup/

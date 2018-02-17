@@ -1,4 +1,6 @@
 import numpy as np
+from collections import Counter
+
 
 # constants
 rgb2xyz_matrix = np.matrix(
@@ -8,9 +10,9 @@ rgb2xyz_matrix = np.matrix(
 )
 
 xyz2rgb_matrix = np.matrix(
-    '3.240479 -1.53715 -0.498525;'
-    '-0.969256 1.875991 0.041556;'
-    '0.055648 -0.204043 1.057311'
+    '3.2404790 -1.537150 -0.498535; '
+    '-0.969256 1.8759910 0.041556; '
+    '0.0556480 -0.204043 1.057311'
 )
 
 xw = 0.95
@@ -38,20 +40,13 @@ def gamma(d):
     if d < 0.00304:
         result = d * 12.92
     else:
-        result = ((1.055 * d) ** (1 / 2.4)) - 0.055
+        result = (1.055 * (d ** (1 / 2.4))) - 0.055
     return result
 
 
 def bgr2xyz(bgr_image):
-    xyz_image = np.zeros(bgr_image.shape, dtype=np.object)
+    xyz_image = bgr_image
     w, h, band = bgr_image.shape
-
-    # print('rgb2xyz_matrix')
-    # print(rgb2xyz_matrix)
-    # print()
-    # print('bgr_image')
-    # print(bgr_image)
-    # print()
 
     # bgr to xyz
     for y in range(0, h):
@@ -66,15 +61,11 @@ def bgr2xyz(bgr_image):
             new_pixel_value = rgb2xyz_matrix * bgr_matrix
             xyz_image[x, y] = new_pixel_value.transpose()
 
-    # print('xyz_image')
-    # print(xyz_image)
-    # print()
-
     return xyz_image
 
 
 def xyz2bgr(xyz_image):
-    bgr_image = np.zeros(xyz_image.shape, dtype=np.object)
+    bgr_image = xyz_image
     w, h, bands = xyz_image.shape
     for y in range(0, h):
         for x in range(0, w):
@@ -82,23 +73,23 @@ def xyz2bgr(xyz_image):
             x_val, y_val, z_val = xyz_image[x, y]
             xyz_matrix = np.matrix('{} {} {}'.format(x_val, y_val, z_val)).transpose()
             new_pixel_value = xyz2rgb_matrix * xyz_matrix  # rgb form
-            r = new_pixel_value[0]
-            g = new_pixel_value[1]
-            b = new_pixel_value[2]
+            r = new_pixel_value.item(0)
+            g = new_pixel_value.item(1)
+            b = new_pixel_value.item(2)
 
             # convert to nonlinear bgr
             r = gamma(r)
             g = gamma(g)
             b = gamma(b)
-            new_pixel_value = np.matrix(b, g, r)  # bgr form
-            bgr_image[x, y] = new_pixel_value.transpose()
+            new_pixel_value = np.matrix('{} {} {}'.format(b, g, r))  # bgr form
+            bgr_image[x, y] = new_pixel_value
 
     return bgr_image
 
 
 # working on this
 def xyz2luv(xyz_image):
-    luv_image = np.zeros(xyz_image.shape, dtype=np.object)
+    luv_image = xyz_image
     w, h, bands = xyz_image.shape
     for y in range(0, h):
         for x in range(0, w):
@@ -129,14 +120,17 @@ def xyz2luv(xyz_image):
 
 
 def luv2xyz(luv_image):
-    xyz_image = np.zeros(luv_image.shape, dtype=np.object)
+    xyz_image = luv_image
     w, h, bands = xyz_image.shape
     for y in range(0, h):
         for x in range(0, w):
             l, u, v = luv_image[x, y]
 
-            u_prime = (u + 13 * uw * l) / (13 * l)
-            v_prime = (v + 13 * vw * l) / (13 * l)
+            if l == 0:
+                u_prime = v_prime = 0
+            else:
+                u_prime = (u + 13 * uw * l) / (13 * l)
+                v_prime = (v + 13 * vw * l) / (13 * l)
 
             # compute y value from l
             if l > 7.9996:
@@ -182,56 +176,53 @@ def luv2bgr(luv_img):
     # convert to bgr8
     bgr_image = bgr_image * 255
 
-    # print('xyz_image')
-    # print(xyz_image)
-    # print()
-    # print('bgr_image')
-    # print(bgr_image)
-    # print()
-
     return bgr_image
 
 
 def linear_scaling(x1, y1, x2, y2, rgb_img):
-    lookup_table = np.zeros((256, 2), dtype=int)
+    histogram_index_value = []
     min_i = 257
     max_i = -1
 
     w, h, b = rgb_img.shape
-    print('x1 = {}, y1 = {}, x2 = {}, y2 = {}'.format(x1, y1, x2, y2))
-    print('image size = {}x{}'.format(w, h))
+    # print('x1 = {}, y1 = {}, x2 = {}, y2 = {}'.format(x1, y1, x2, y2))
+    # print('image size = {}x{}'.format(w, h))
 
     # rgb -> luv
     luv_image = bgr2luv(rgb_img)
 
     # count histogram
-    for y in range(y1, y2):
-        for x in range(x1, x2):
-            l, u, v = luv_image[y, x]
-            lookup_table[l][0] += 1  # count frequency, l needs to be integer but here it is not
-
-            if l < min_i:
-                min_i = l
-            elif l > max_i:
-                max_i = l
-
-    # build a lookup table
-    for i in range(100):
-        if min_i <= i <= max_i:
-            lookup_table[i][1] = ls_transform(i, min_i, max_i, 0, 100)
-        elif i < min_i:
-            lookup_table[i][1] = 0
-        else:
-            lookup_table[i][1] = 100
-
-    # build new image using linear scaling in luv
-    scaled_luv_image = luv_image
-    for y in range(h):
-        for x in range(w):
-            l, u, v = luv_image[x, y]
-            scaled_luv_image[x, y] = lookup_table[l][1]
+    # for y in range(y1, y2):
+    #     for x in range(x1, x2):
+    #         l, u, v = luv_image[y, x]
+    #         histogram_index_value += [str.format("%.6f" % l)]
+    #
+    #         if l < min_i:
+    #             min_i = l
+    #         elif l > max_i:
+    #             max_i = l
+    # histogram_count_index_value = Counter(histogram_index_value)
+    # new_i = histogram_count_index_value
+    #
+    # # build a lookup table
+    # for y in range(y1, y2):
+    #     for x in range(x1, x2):
+    #         l, u, v = luv_image[y, x]
+    #         l_as_str = str.format("%.6f" % l)
+    #         new_i[l_as_str] = ls_transform(l, min_i, max_i, 0, 100)
+    #
+    # # build new image using linear scaling in luv
+    # scaled_luv_image = luv_image
+    # for y in range(h):
+    #     for x in range(w):
+    #         l, u, v = luv_image[x, y]
+    #         l_as_str = str.format("%.6f" % l)
+    #         new_luv_matrix = np.matrix('{} {} {}'.format(
+    #             new_i[l_as_str], u, v
+    #         ))
+    #         scaled_luv_image[x, y] = new_luv_matrix
 
     # luv -> bgr
-    bgr_img = luv2bgr(scaled_luv_image)
+    bgr_img = luv2bgr(luv_image)     # weird result numbers
 
     return bgr_img
