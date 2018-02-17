@@ -1,7 +1,6 @@
 import numpy as np
 from collections import Counter
 
-
 # constants
 rgb2xyz_matrix = np.matrix(
     '0.412453 0.357580 0.180423; '
@@ -45,7 +44,7 @@ def gamma(d):
 
 
 def bgr2xyz(bgr_image):
-    xyz_image = bgr_image
+    xyz_image = bgr_image.copy()
     w, h, band = bgr_image.shape
 
     # bgr to xyz
@@ -65,7 +64,7 @@ def bgr2xyz(bgr_image):
 
 
 def xyz2bgr(xyz_image):
-    bgr_image = xyz_image
+    bgr_image = xyz_image.copy()
     w, h, bands = xyz_image.shape
     for y in range(0, h):
         for x in range(0, w):
@@ -89,7 +88,7 @@ def xyz2bgr(xyz_image):
 
 # working on this
 def xyz2luv(xyz_image):
-    luv_image = xyz_image
+    luv_image = xyz_image.copy()
     w, h, bands = xyz_image.shape
     for y in range(0, h):
         for x in range(0, w):
@@ -97,6 +96,7 @@ def xyz2luv(xyz_image):
 
             # compute t and l (l should be between 0 and 100)
             t = y_value / yw
+            l = 0
             if t > 0.008856:
                 l = 116 * (t ** (1 / 3)) - 16
             else:
@@ -107,9 +107,9 @@ def xyz2luv(xyz_image):
             if d == 0:
                 u_prime = v_prime = 0
             else:
-                u_prime = 4 * x_value / d
-                v_prime = 9 * y_value / d
-            u = 12 * l * (u_prime - uw)
+                u_prime = (4 * x_value) / d
+                v_prime = (9 * y_value) / d
+            u = 13 * l * (u_prime - uw)
             v = 13 * l * (v_prime - vw)
 
             # store luv pixel
@@ -120,7 +120,7 @@ def xyz2luv(xyz_image):
 
 
 def luv2xyz(luv_image):
-    xyz_image = luv_image
+    xyz_image = luv_image.copy()
     w, h, bands = xyz_image.shape
     for y in range(0, h):
         for x in range(0, w):
@@ -143,8 +143,8 @@ def luv2xyz(luv_image):
                 x_value = 0
                 z_value = 0
             else:
-                x_value = y * 2.25 * (u_prime / v_prime)
-                z_value = y * (3 - 0.75 * u_prime - 5 * v_prime) / v_prime
+                x_value = y_value * 2.25 * (u_prime / v_prime)
+                z_value = y_value * (3 - 0.75 * u_prime - 5 * v_prime) / v_prime
 
             # store xyz pixel
             xyz_pixel = np.matrix('{} {} {}'.format(x_value, y_value, z_value))
@@ -185,8 +185,6 @@ def linear_scaling(x1, y1, x2, y2, rgb_img):
     max_i = -1
 
     w, h, b = rgb_img.shape
-    # print('x1 = {}, y1 = {}, x2 = {}, y2 = {}'.format(x1, y1, x2, y2))
-    # print('image size = {}x{}'.format(w, h))
 
     # rgb -> luv
     luv_image = bgr2luv(rgb_img)
@@ -223,6 +221,6 @@ def linear_scaling(x1, y1, x2, y2, rgb_img):
     #         scaled_luv_image[x, y] = new_luv_matrix
 
     # luv -> bgr
-    bgr_img = luv2bgr(luv_image)     # weird result numbers
+    bgr_img = luv2bgr(luv_image)
 
     return bgr_img

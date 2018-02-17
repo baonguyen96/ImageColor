@@ -3,6 +3,8 @@ import color
 import numpy as np
 import cv2
 import os
+import shutil
+import time
 
 
 def test_dict_1():
@@ -40,17 +42,18 @@ def test_matrix():
 def test_image_transform():
     if not os.path.exists("images"):
         os.mkdir("images")
-    org_bgr_img = cv2.imread("images/fruits.jpg")
+    org_bgr_img = cv2.imread("images/lenna.bmp")
     cv2.imshow("Original BGR", org_bgr_img)
-    linear_bgr_img = org_bgr_img * 1/255
-    xyz_img = color.bgr2xyz(linear_bgr_img)
-    # luv_img = color.xyz2luv(xyz_img)
-    # new_xyz_img = color.luv2xyz(luv_img)
-    # new_linear_bgr_img = color.xyz2bgr(new_xyz_img)
-    new_linear_bgr_img = color.xyz2bgr(xyz_img)
-    new_bgr_img = (new_linear_bgr_img * 255).astype(int)
+    non_linear_bgr_img = org_bgr_img * 1/255
+    xyz_img = color.bgr2xyz(non_linear_bgr_img)     # non_linear_rgb -> linear_rgb -> xyz
+    luv_img = color.xyz2luv(xyz_img)
+    new_xyz_img = color.luv2xyz(luv_img)
+    new_non_linear_bgr_img = color.xyz2bgr(new_xyz_img)     # xyz -> linear_rgb -> non_linear_rgb
+    # new_linear_bgr_img = color.xyz2bgr(xyz_img)
+    new_bgr_img = np.floor((new_non_linear_bgr_img * 255))
+    cv2.imwrite("new_fruits.png", new_bgr_img)
+    shutil.move("./new_fruits.png", "./images/new_fruits.png")
     cv2.imshow("Transform back BGR", new_bgr_img)
-    cv2.imwrite("image/new_fruits.png", new_bgr_img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 

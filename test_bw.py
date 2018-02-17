@@ -11,9 +11,9 @@ import os
 if not os.path.exists("images"):
     os.mkdir("images")
 
-name_input = 'images/bw.png'
-name_output_he = 'bw_he_1199.png'
-name_output_ls = 'bw_ls_1199.png'
+name_input = 'images/fruits.jpg'
+name_output_he = 'fruits_he_1199.png'
+name_output_ls = 'fruits_ls_1199.png'
 w1 = 0.1
 h1 = 0.1
 w2 = 0.9
