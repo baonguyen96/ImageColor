@@ -44,7 +44,7 @@ H1 = round(h1 * (rows - 1))
 W2 = round(w2 * (cols - 1))
 H2 = round(h2 * (rows - 1))
 
-new_img = color.linear_scaling(W1, H1, W2, H2, inputImage)
+new_img = color.histogram_equalization(W1, H1, W2, H2, inputImage)
 cv2.imwrite(name_output, new_img)
 new_img = cv2.imread(name_output, cv2.IMREAD_COLOR)
 cv2.imshow("Linear scaling", new_img)

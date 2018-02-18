@@ -1,10 +1,15 @@
-from collections import Counter
-import color
-import numpy as np
-import cv2
+"""
+Bao Nguyen
+BCN140030
+CS 4391.001
+"""
+
 import os
 import shutil
-import time
+from collections import Counter
+import cv2
+import numpy as np
+import color
 
 
 def test_dict_1():
@@ -20,13 +25,25 @@ def test_dict_1():
 
 
 def test_dict_2():
-    new_i = []
-    l = 7.9999999
-    l_as_str = str.format("%.6f" % l)
-    new_i += ['7.999999']
-    # new_i['7.999999'] = 3
-    print(new_i)
-    print(Counter(new_i))
+    dictionary = ['0.4', '0.1', '0.1', '0.2', '0.3', '0.3', '0.3']
+    c = Counter(dictionary)
+    print(c)
+    print(c['0.4'])
+    print(c[0.4])
+    print()
+
+    c_copy = c.copy()
+    c_copy['0.4'] = 5
+    print(c_copy)
+    print(c)
+    print()
+
+    for key, elem in c.items():
+        print('{}, {}'.format(key, elem))
+    print()
+
+    c = sorted(c)
+    print(c)
 
 
 def test_power():
@@ -58,4 +75,30 @@ def test_image_transform():
     cv2.destroyAllWindows()
 
 
-test_image_transform()
+def test_histogram_equalization_hi_values():
+    org_bgr_img = cv2.imread("images/lenna.bmp")
+    w1 = 0.6
+    h1 = 0.3
+    w2 = 0.8
+    h2 = 0.7
+    rows, cols, bands = org_bgr_img.shape
+
+    W1 = round(w1 * (cols - 1))
+    H1 = round(h1 * (rows - 1))
+    W2 = round(w2 * (cols - 1))
+    H2 = round(h2 * (rows - 1))
+    color.histogram_equalization(W1, H1, W2, H2, org_bgr_img)
+
+
+def test_histogram_equalization_opencv():
+    img = cv2.imread('images/bw.png', 0)
+    cv2.imshow("Input", img)
+    res = cv2.equalizeHist(img)
+    cv2.imshow("Output", res)
+    cv2.imwrite('bw_he_opencv.png', res)
+    shutil.move("./bw_he_opencv.png", "./images/bw_he_opencv.png")
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+
+test_histogram_equalization_opencv()

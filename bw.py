@@ -1,3 +1,10 @@
+"""
+Bao Nguyen
+BCN140030
+CS 4391.001
+"""
+
+
 # can only process bw images
 
 import cv2
@@ -66,8 +73,8 @@ def histogram_equalization(x1, y1, x2, y2, org_img):
     lookup_table = np.zeros((256, 4), dtype=int)
     new_image = org_img
     w, h, bands = org_img.shape
-    min_i = 257
-    max_i = -1
+    min_l = 101
+    max_l = -1
     k = 256
     n = w * h
 
@@ -79,12 +86,12 @@ def histogram_equalization(x1, y1, x2, y2, org_img):
             b, g, r = org_img[y, x]
             lookup_table[g][H_I] += 1   # count frequency
 
-            if g < min_i:
-                min_i = g
-            elif g > max_i:
-                max_i = g
+            if g < min_l:
+                min_l = g
+            elif g > max_l:
+                max_l = g
 
-    print('max i = {}, min i = {}'.format(max_i, min_i))
+    print('max i = {}, min i = {}'.format(max_l, min_l))
 
     # build a lookup table
     for i in range(256):
@@ -92,6 +99,7 @@ def histogram_equalization(x1, y1, x2, y2, org_img):
             last_f_i = 0
         else:
             last_f_i = lookup_table[i - 1][F_I]
+
         current_h_i = lookup_table[i][H_I]
         current_f_i = last_f_i + current_h_i
         lookup_table[i][F_I] = current_f_i

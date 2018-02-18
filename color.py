@@ -1,7 +1,15 @@
-import numpy as np
-from collections import Counter
+"""
+Bao Nguyen
+BCN140030
+CS 4391.001
+"""
 
-# constants
+import numpy as np
+import math
+
+
+########################################################################
+#  constants
 rgb2xyz_matrix = np.matrix(
     '0.412453 0.357580 0.180423; '
     '0.212671 0.715160 0.072169; '
@@ -19,6 +27,7 @@ yw = 1
 zw = 1.09
 uw = (4 * xw) / (xw + 15 * yw + 3 * zw)
 vw = (9 * yw) / (xw + 15 * yw + 3 * zw)
+########################################################################
 
 
 def ls_transform(x, a, b, A, B):
@@ -41,6 +50,10 @@ def gamma(d):
     else:
         result = (1.055 * (d ** (1 / 2.4))) - 0.055
     return result
+
+
+def calculate_fi(last_fi, current_fi, n, k):
+    return ((last_fi + current_fi) / 2) * (k / n)
 
 
 def bgr2xyz(bgr_image):
@@ -86,7 +99,6 @@ def xyz2bgr(xyz_image):
     return bgr_image
 
 
-# working on this
 def xyz2luv(xyz_image):
     luv_image = xyz_image.copy()
     w, h, bands = xyz_image.shape
@@ -102,7 +114,7 @@ def xyz2luv(xyz_image):
             else:
                 l = 903.3 * t
 
-            # compute u, v
+            # compute u, v (set u' and v' are 0 if d = 0 to protect against divide by 0)
             d = x_value + 15 * y_value + 3 * z_value
             if d == 0:
                 u_prime = v_prime = 0
@@ -126,6 +138,7 @@ def luv2xyz(luv_image):
         for x in range(0, w):
             l, u, v = luv_image[x, y]
 
+            # prevent divide by 0
             if l == 0:
                 u_prime = v_prime = 0
             else:
@@ -180,47 +193,123 @@ def luv2bgr(luv_img):
 
 
 def linear_scaling(x1, y1, x2, y2, rgb_img):
-    histogram_index_value = []
-    min_i = 257
-    max_i = -1
+    print('Applying linear scaling...')
 
-    w, h, b = rgb_img.shape
+    min_l = 257
+    max_l = -1
+    w, h, bands = rgb_img.shape
 
     # rgb -> luv
     luv_image = bgr2luv(rgb_img)
+    scaled_luv_image = luv_image.copy()
 
     # count histogram
-    # for y in range(y1, y2):
-    #     for x in range(x1, x2):
-    #         l, u, v = luv_image[y, x]
-    #         histogram_index_value += [str.format("%.6f" % l)]
-    #
-    #         if l < min_i:
-    #             min_i = l
-    #         elif l > max_i:
-    #             max_i = l
-    # histogram_count_index_value = Counter(histogram_index_value)
-    # new_i = histogram_count_index_value
-    #
-    # # build a lookup table
-    # for y in range(y1, y2):
-    #     for x in range(x1, x2):
-    #         l, u, v = luv_image[y, x]
-    #         l_as_str = str.format("%.6f" % l)
-    #         new_i[l_as_str] = ls_transform(l, min_i, max_i, 0, 100)
-    #
-    # # build new image using linear scaling in luv
-    # scaled_luv_image = luv_image
-    # for y in range(h):
-    #     for x in range(w):
-    #         l, u, v = luv_image[x, y]
-    #         l_as_str = str.format("%.6f" % l)
-    #         new_luv_matrix = np.matrix('{} {} {}'.format(
-    #             new_i[l_as_str], u, v
-    #         ))
-    #         scaled_luv_image[x, y] = new_luv_matrix
+    for y in range(y1, y2):
+        for x in range(x1, x2):
+            l, u, v = luv_image[y, x]
+            if l < min_l:
+                min_l = l
+            elif l > max_l:
+                max_l = l
+
+    # print('min_l = {}'.format(min_l))
+    # print('max_l = {}'.format(max_l))
+
+    # build new image using linear scaling in luv
+    for y in range(h):
+        for x in range(w):
+            l, u, v = luv_image[x, y]
+
+            if l < min_l:
+                l = 0
+            elif l > max_l:
+                l = 100
+            else:
+                l = ls_transform(l, min_l, max_l, 0, 100)
+
+            new_luv_matrix = np.matrix('{} {} {}'.format(l, u, v))
+            scaled_luv_image[x, y] = new_luv_matrix
 
     # luv -> bgr
-    bgr_img = luv2bgr(luv_image)
+    bgr_img = luv2bgr(scaled_luv_image)
+
+    print('Complete applying linear scaling')
+
+    return bgr_img
+
+
+def histogram_equalization(x1, y1, x2, y2, rgb_img):
+    print('Applying histogram equalization...')
+
+    # lookup table columns
+    hi_col = 0
+    fi_col = 1
+    fi_calc_col = 2
+    floor_fi_calc_col = 3
+
+    w, h, bands = rgb_img.shape
+    min_l = 101
+    max_l = -1
+    k = 101
+    n = (x2 - x1) * (y2 - y1)
+    lookup_table = np.zeros((101, 4), dtype=float)
+
+    # rgb -> luv
+    luv_image = bgr2luv(rgb_img)
+    scaled_luv_image = luv_image.copy()
+
+    # count histogram
+    for y in range(y1, y2):
+        for x in range(x1, x2):
+            l, u, v = luv_image[y, x]
+
+            # discretization of L value
+            lookup_table[int(round(l))] += 1
+
+            if l < min_l:
+                min_l = l
+            elif l > max_l:
+                max_l = l
+
+    # print('min_l = {}'.format(min_l))
+    # print('max_l = {}'.format(max_l))
+
+    # build a lookup table for Luv
+    for index in range(101):
+        # calculate cumulative histogram, different for first element
+        if index == 0:
+            last_fi = 0
+        else:
+            last_fi = lookup_table[index - 1][fi_col]
+
+        # compute values and update lookup table
+        current_hi = lookup_table[index][hi_col]
+        current_fi = last_fi + current_hi
+        lookup_table[index][fi_col] = current_fi
+        calculated_fi = calculate_fi(last_fi, current_fi, n, k)
+        lookup_table[index][fi_calc_col] = calculated_fi
+        if calculated_fi > 100:
+            calculated_fi = 100
+        lookup_table[index][floor_fi_calc_col] = math.floor(calculated_fi)
+
+    # build new image using histogram equalization in luv
+    for y in range(h):
+        for x in range(w):
+            l, u, v = luv_image[x, y]
+
+            if l < min_l:
+                l = 0
+            elif l > max_l:
+                l = 100
+            else:
+                l = lookup_table[int(round(l))][floor_fi_calc_col]
+
+            new_luv_matrix = np.matrix('{} {} {}'.format(l, u, v))
+            scaled_luv_image[x, y] = new_luv_matrix
+
+    # luv -> bgr
+    bgr_img = luv2bgr(scaled_luv_image)
+
+    print('Complete applying histogram equalization')
 
     return bgr_img
