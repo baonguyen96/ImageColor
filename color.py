@@ -56,8 +56,11 @@ def calculate_fi(last_fi, current_fi, n, k):
     return ((last_fi + current_fi) / 2) * (k / n)
 
 
-def bgr2xyz(bgr_image):
-    xyz_image = bgr_image.copy()
+def bgr2luv(bgr_image):
+    # nonlinear bgr
+    bgr_image = bgr_image * 1. / 255
+
+    luv_image = bgr_image.copy()
     w, h, band = bgr_image.shape
 
     # bgr to xyz
@@ -70,41 +73,17 @@ def bgr2xyz(bgr_image):
             g = inverse_gamma(g)
             r = inverse_gamma(r)
             bgr_matrix = np.matrix('{} {} {}'.format(r, g, b)).transpose()
-            new_pixel_value = rgb2xyz_matrix * bgr_matrix
-            xyz_image[x, y] = new_pixel_value.transpose()
 
-    return xyz_image
+            # bgr -> xyz pixel
+            xyz_pixel_value = rgb2xyz_matrix * bgr_matrix
+            xyz_pixel_value = xyz_pixel_value.transpose()
 
+            ##############
 
-def xyz2bgr(xyz_image):
-    bgr_image = xyz_image.copy()
-    w, h, bands = xyz_image.shape
-    for y in range(0, h):
-        for x in range(0, w):
-            # linear bgr
-            x_val, y_val, z_val = xyz_image[x, y]
-            xyz_matrix = np.matrix('{} {} {}'.format(x_val, y_val, z_val)).transpose()
-            new_pixel_value = xyz2rgb_matrix * xyz_matrix  # rgb form
-            r = new_pixel_value.item(0)
-            g = new_pixel_value.item(1)
-            b = new_pixel_value.item(2)
-
-            # convert to nonlinear bgr
-            r = gamma(r)
-            g = gamma(g)
-            b = gamma(b)
-            new_pixel_value = np.matrix('{} {} {}'.format(b, g, r))  # bgr form
-            bgr_image[x, y] = new_pixel_value
-
-    return bgr_image
-
-
-def xyz2luv(xyz_image):
-    luv_image = xyz_image.copy()
-    w, h, bands = xyz_image.shape
-    for y in range(0, h):
-        for x in range(0, w):
-            x_value, y_value, z_value = xyz_image[x, y]
+            # xyz -> luv pixel
+            x_value = xyz_pixel_value.item(0)
+            y_value = xyz_pixel_value.item(1)
+            z_value = xyz_pixel_value.item(2)
 
             # compute t and l (l should be between 0 and 100)
             t = y_value / yw
@@ -131,8 +110,10 @@ def xyz2luv(xyz_image):
     return luv_image
 
 
-def luv2xyz(luv_image):
+def luv2bgr(luv_image):
+    # luv to xyz
     xyz_image = luv_image.copy()
+    bgr_image = luv_image.copy()
     w, h, bands = xyz_image.shape
     for y in range(0, h):
         for x in range(0, w):
@@ -159,32 +140,19 @@ def luv2xyz(luv_image):
                 x_value = y_value * 2.25 * (u_prime / v_prime)
                 z_value = y_value * (3 - 0.75 * u_prime - 5 * v_prime) / v_prime
 
-            # store xyz pixel
-            xyz_pixel = np.matrix('{} {} {}'.format(x_value, y_value, z_value))
-            xyz_image[x, y] = xyz_pixel
+            ########################
 
-    return xyz_image
+            # xyz to bgr
+            # linear bgr
+            xyz_matrix = np.matrix('{} {} {}'.format(x_value, y_value, z_value)).transpose()
+            new_pixel_value = xyz2rgb_matrix * xyz_matrix  # rgb form
 
-
-def bgr2luv(bgr_image):
-    # nonlinear bgr
-    bgr_image = bgr_image * 1. / 255
-
-    # bgr to xyz
-    xyz_image = bgr2xyz(bgr_image)
-
-    # xyz to luv
-    luv_image = xyz2luv(xyz_image)
-
-    return luv_image
-
-
-def luv2bgr(luv_img):
-    # luv to xyz
-    xyz_image = luv2xyz(luv_img)
-
-    # xyz to bgr
-    bgr_image = xyz2bgr(xyz_image)
+            # convert to nonlinear bgr
+            r = gamma(new_pixel_value.item(0))
+            g = gamma(new_pixel_value.item(1))
+            b = gamma(new_pixel_value.item(2))
+            new_pixel_value = np.matrix('{} {} {}'.format(b, g, r))  # bgr form
+            bgr_image[x, y] = new_pixel_value
 
     # convert to bgr8
     bgr_image = bgr_image * 255
@@ -211,9 +179,6 @@ def linear_scaling(x1, y1, x2, y2, rgb_img):
                 min_l = l
             elif l > max_l:
                 max_l = l
-
-    # print('min_l = {}'.format(min_l))
-    # print('max_l = {}'.format(max_l))
 
     # build new image using linear scaling in luv
     for y in range(h):
@@ -270,9 +235,6 @@ def histogram_equalization(x1, y1, x2, y2, rgb_img):
                 min_l = l
             elif l > max_l:
                 max_l = l
-
-    # print('min_l = {}'.format(min_l))
-    # print('max_l = {}'.format(max_l))
 
     # build a lookup table for Luv
     for index in range(101):

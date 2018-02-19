@@ -49,7 +49,20 @@ then the output image will be very bright. For the best result, user should samp
 
 V. Special notes
 - Because the program has to repeatedly read the image over and over again
-while switching color space and changing the luminance, it is SLOW for larger images.
+while switching color space and changing the luminance, it is SLOW for larger images (*).
+- To improve the speed, I decide not to convert the entire image from RGB -> XYZ -> Luv and back.
+Instead, while reading every pixel in RGB, I convert that pixel to XYZ then Luv. And I do the
+same thing while converting back (2). This reduces the needs to re-read the entire image over and
+over again, thus improves the conversion speed.
+For instance, here is the result of performing both method on the same 512px X 480px color image, sampling coordinates (0.1, 0.1), (0.3, 0.2)
+
+| Task                   | Method 1      | Method 2      |
+| ---------------------- |-------------- | ------------- |
+| Linear Scaling         | 76.54 seconds | 58.86 seconds |
+| Histogram Equalization | 71.48 seconds | 59.48 seconds |
+
+As you can see, this is relatively small image, and  my method improves around 10 - 15 seconds
+in runtime. The difference in performance will become greater for larger images.
 - Even though the program only intends to modify the specified area of the image,
 the remaining part of the image may not remain exactly the same due to floating point
 truncation during the color space transformation process.
