@@ -142,8 +142,7 @@ def luv2bgr(luv_image):
 
             ########################
 
-            # xyz to bgr
-            # linear bgr
+            # xyz to linear bgr
             xyz_matrix = np.matrix('{} {} {}'.format(x_value, y_value, z_value)).transpose()
             new_pixel_value = xyz2rgb_matrix * xyz_matrix  # rgb form
 

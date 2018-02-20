@@ -17,13 +17,13 @@ import time
 if not os.path.exists("images"):
     os.mkdir("images")
 
-name_input = 'images/fruits.jpg'
-name_output_he = 'fruits_he_4455__.png'
-name_output_ls = 'fruits_ls_4455__.png'
-w1 = 0.4
-h1 = 0.4
-w2 = 0.5
-h2 = 0.5
+name_input = 'images/bw.png'
+name_output_he = 'bw_he_5274_.png'
+name_output_ls = 'bw_ls_5274_.png'
+w1 = 0.5
+h1 = 0.2
+w2 = 0.7
+h2 = 0.4
 
 input_image = cv2.imread(name_input, cv2.IMREAD_COLOR)          # for linear scaling
 input_image_copy = cv2.imread(name_input, cv2.IMREAD_COLOR)     # for histogram equalization

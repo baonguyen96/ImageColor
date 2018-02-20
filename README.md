@@ -63,7 +63,7 @@ will perform linear scaling, sampling the center area of the __input_image.png__
 
 ## Results
 
-In my observation, Linear Scaling consistently produces better images than Histogram Equalization.
+In my observation, Linear Scaling is more likely to produce better images than Histogram Equalization. Histogram Equalization tends to stretch the histogram more aggressively, more details later, which in most cases overdoes the process and gives worse results than Linear Scaling counterpart.
 
 Histogram Equalization tries to spread the histogram out, which in cases where the image is
 intentionally underexposed (such as Black & White or film images), it will tries to boost white level
@@ -73,6 +73,13 @@ In some cases, the program actually makes the image worse than the original.
 For example, if user choose to sample a very bright area from the original image,
 the output image will be very dark. On the other hand, if a very dark area is sampled,
 then the output image will be very bright. For the best result, user should sample the entire image.
+
+Sample output images (sampling the entire original image):
+
+| Original Image                 | Linear Scaling                              | Histogram Equalization      |
+| ------------------------------ |-------------------------------------------- | ------------- |
+| ![Original](images/fruits.jpg) | ![Linear Scaling](images/fruits_ls_all.png) | ![Histogram Equalization](images/fruits_he_all.png) |
+
 
 ## Special notes
 
