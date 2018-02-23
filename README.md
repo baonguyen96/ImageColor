@@ -87,7 +87,7 @@ Because the program has to repeatedly read the image over and over again (1)
 while switching color space and changing the luminance, it is SLOW for larger images. (*) 
 
 To improve the speed, I decide not to convert the entire image from RGB -> XYZ -> Luv and back.
-Instead, while reading every pixel in RGB, I convert that pixel to XYZ then Luv. And I do the
+Instead, while reading every pixel in RGB, I convert that pixel to XYZ then to Luv. And I do the
 same thing while converting back (2). This reduces the needs to re-read the entire image over and
 over again, thus improves the conversion speed.
 

@@ -47,7 +47,7 @@ H2 = round(h2 * (rows - 1))
 new_img = color.linear_scaling(W1, H1, W2, H2, inputImage)
 cv2.imwrite(name_output, new_img)
 new_img = cv2.imread(name_output, cv2.IMREAD_COLOR)
-cv2.imshow("Linear scaling", new_img)
+cv2.imshow("Linear Scaling", new_img)
 
 # move the images to the images folder
 os.rename("./" + name_output, "./images/" + name_output)
