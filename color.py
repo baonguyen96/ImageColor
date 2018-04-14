@@ -216,7 +216,7 @@ def histogram_equalization(x1, y1, x2, y2, rgb_img):
     max_l = -1
     k = 101
     n = (x2 - x1) * (y2 - y1)
-    lookup_table = np.zeros((101, 4), dtype=float)
+    lookup_table = np.zeros((105, 4), dtype=float)
 
     # rgb -> luv
     luv_image = bgr2luv(rgb_img)

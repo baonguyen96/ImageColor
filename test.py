@@ -57,9 +57,9 @@ def test_matrix():
 
 
 def test_image_transform():
-    if not os.path.exists("images"):
-        os.mkdir("images")
-    org_bgr_img = cv2.imread("images/lenna.bmp")
+    if not os.path.exists("old_images"):
+        os.mkdir("old_images")
+    org_bgr_img = cv2.imread("old_images/lenna.bmp")
     cv2.imshow("Original BGR", org_bgr_img)
     non_linear_bgr_img = org_bgr_img * 1/255
     xyz_img = color.bgr2xyz(non_linear_bgr_img)     # non_linear_rgb -> linear_rgb -> xyz
@@ -69,14 +69,14 @@ def test_image_transform():
     # new_linear_bgr_img = color.xyz2bgr(xyz_img)
     new_bgr_img = np.floor((new_non_linear_bgr_img * 255))
     cv2.imwrite("new_fruits.png", new_bgr_img)
-    shutil.move("./new_fruits.png", "./images/new_fruits.png")
+    shutil.move("./new_fruits.png", "./old_images/new_fruits.png")
     cv2.imshow("Transform back BGR", new_bgr_img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
 
 def test_histogram_equalization_hi_values():
-    org_bgr_img = cv2.imread("images/lenna.bmp")
+    org_bgr_img = cv2.imread("old_images/lenna.bmp")
     w1 = 0.6
     h1 = 0.3
     w2 = 0.8
@@ -91,12 +91,12 @@ def test_histogram_equalization_hi_values():
 
 
 def test_histogram_equalization_opencv():
-    img = cv2.imread('images/bw.png', 0)
+    img = cv2.imread('old_images/bw.png', 0)
     cv2.imshow("Input", img)
     res = cv2.equalizeHist(img)
     cv2.imshow("Output", res)
     cv2.imwrite('bw_he_opencv.png', res)
-    shutil.move("./bw_he_opencv.png", "./images/bw_he_opencv.png")
+    shutil.move("./bw_he_opencv.png", "./old_images/bw_he_opencv.png")
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 

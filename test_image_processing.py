@@ -14,10 +14,10 @@ import os
 import time
 
 
-if not os.path.exists("images"):
-    os.mkdir("images")
+if not os.path.exists("old_images"):
+    os.mkdir("old_images")
 
-name_input = 'images/bw.png'
+name_input = 'old_images/bw.png'
 name_output_he = 'bw_he_5274_.png'
 name_output_ls = 'bw_ls_5274_.png'
 w1 = 0.5
@@ -57,9 +57,9 @@ new_img_he = cv2.imread(name_output_he, cv2.IMREAD_COLOR)
 cv2.imshow("Histogram Equalization", new_img_he)
 he_end = time.time()
 
-# move new images to the images directory
-shutil.move("./" + name_output_ls, "./images/" + name_output_ls)
-shutil.move("./" + name_output_he, "./images/" + name_output_he)
+# move new old_images to the old_images directory
+shutil.move("./" + name_output_ls, "./old_images/" + name_output_ls)
+shutil.move("./" + name_output_he, "./old_images/" + name_output_he)
 
 print('Linear scaling:         {} seconds'.format(ls_end - ls_start))
 print('Histogram equalization: {} seconds'.format(he_end - he_start))
