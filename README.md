@@ -78,7 +78,7 @@ Sample output images (sampling the entire original image):
 
 | Original Image                 | Linear Scaling                              | Histogram Equalization      |
 | ------------------------------ |-------------------------------------------- | ------------- |
-| ![Original](old_images/fruits.jpg) | ![Linear Scaling](images/fruits_ls_all.png) | ![Histogram Equalization](images/fruits_he_all.png) |
+| ![Original](old_images/fruits.jpg) | ![Linear Scaling](old_images/fruits_ls_all.png) | ![Histogram Equalization](old_images/fruits_he_all.png) |
 
 
 ## Special notes
