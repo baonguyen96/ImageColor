@@ -3,6 +3,7 @@
 .idea/mongoSettings.xml
 .idea/workspace.xml
 __pycache__/
+venv/
 venv/Include/
 backup/
 BaoNguyen_Project1.zip
