@@ -4,8 +4,6 @@ BCN140030
 CS 4391.001
 """
 
-# driver program for linear scaling and histogram equalization
-
 import cv2
 import sys
 import color
@@ -17,13 +15,26 @@ import time
 if not os.path.exists("old_images"):
     os.mkdir("old_images")
 
-name_input = 'old_images/bw.png'
-name_output_he = 'bw_he_5274_.png'
-name_output_ls = 'bw_ls_5274_.png'
-w1 = 0.5
-h1 = 0.2
-w2 = 0.7
-h2 = 0.4
+if len(sys.argv) != 7:
+    print(sys.argv[0], ": takes 6 arguments. Not ", len(sys.argv) - 1)
+    print("Expecting arguments: w1 h1 w2 h2 ImageIn ImageOut.")
+    print("Example:", sys.argv[0], " 0.2 0.1 0.8 0.5 fruits.jpg out.png")
+    sys.exit()
+
+w1 = float(sys.argv[1])
+h1 = float(sys.argv[2])
+w2 = float(sys.argv[3])
+h2 = float(sys.argv[4])
+name_input = sys.argv[5]
+name_output = sys.argv[6]
+
+if w1 < 0 or h1 < 0 or w2 <= w1 or h2 <= h1 or w2 > 1 or h2 > 1:
+    print(" arguments must satisfy 0 <= w1 < w2 <= 1, 0 <= h1 < h2 <= 1")
+    sys.exit()
+
+path, file = os.path.split(name_output)
+name_output_he = 'he_' + file
+name_output_ls = 'ls' + file
 
 input_image = cv2.imread(name_input, cv2.IMREAD_COLOR)          # for linear scaling
 input_image_copy = cv2.imread(name_input, cv2.IMREAD_COLOR)     # for histogram equalization
@@ -58,11 +69,11 @@ cv2.imshow("Histogram Equalization", new_img_he)
 he_end = time.time()
 
 # move new old_images to the old_images directory
-shutil.move("./" + name_output_ls, "./old_images/" + name_output_ls)
-shutil.move("./" + name_output_he, "./old_images/" + name_output_he)
+shutil.move("./" + name_output_ls, "./images/" + name_output_ls)
+shutil.move("./" + name_output_he, "./images/" + name_output_he)
 
-print('Linear scaling:         {} seconds'.format(ls_end - ls_start))
-print('Histogram equalization: {} seconds'.format(he_end - he_start))
+# print('Linear scaling:         {} seconds'.format(ls_end - ls_start))
+# print('Histogram equalization: {} seconds'.format(he_end - he_start))
 
 # wait for key to exit
 print('Press any key to continue...')
